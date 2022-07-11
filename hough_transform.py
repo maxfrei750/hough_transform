@@ -1,12 +1,16 @@
-import numpy as np
-import imageio
 import math
+
+import imageio
+import numpy as np
+
 
 def rgb2gray(rgb):
     return np.dot(rgb[..., :3], [0.299, 0.587, 0.114]).astype(np.uint8)
 
 
-def hough_line(img, angle_step=1, lines_are_white=True, value_threshold=5):
+def hough_line(
+    img, angle_step=1, lines_are_white=True, value_threshold=5, num_length_step_factor=2
+):
     """
     Hough transform for lines
 
@@ -24,10 +28,10 @@ def hough_line(img, angle_step=1, lines_are_white=True, value_threshold=5):
            distance of the input image.
     """
     # Rho and Theta ranges
-    thetas = np.deg2rad(np.arange(-90.0, 90.0, angle_step))
+    thetas = np.deg2rad(np.arange(-90.0, 90.0 + angle_step, angle_step))
     width, height = img.shape
     diag_len = int(round(math.sqrt(width * width + height * height)))
-    rhos = np.linspace(-diag_len, diag_len, diag_len * 2)
+    rhos = np.linspace(-diag_len, diag_len, diag_len * num_length_step_factor)
 
     # Cache some resuable values
     cos_t = np.cos(thetas)
@@ -52,14 +56,17 @@ def hough_line(img, angle_step=1, lines_are_white=True, value_threshold=5):
 
     return accumulator, thetas, rhos
 
+
 def fast_hough_line(img, angle_step=1, lines_are_white=True, value_threshold=5):
     """hough line using vectorized numpy operations,
     may take more memory, but takes much less time"""
     # Rho and Theta ranges
-    thetas = np.deg2rad(np.arange(-90.0, 90.0, angle_step)) #can be changed
-    #width, height = col.size  #if we use pillow
+    thetas = np.deg2rad(
+        np.arange(-90.0, 90.0 + angle_step, angle_step)
+    )  # can be changed
+    # width, height = col.size  #if we use pillow
     width, height = img.shape
-    diag_len = int(np.ceil(np.sqrt(width * width + height * height)))   # max_dist
+    diag_len = int(np.ceil(np.sqrt(width * width + height * height)))  # max_dist
     rhos = np.linspace(-diag_len, diag_len, diag_len * 2)
 
     # Cache some resuable values
@@ -70,17 +77,18 @@ def fast_hough_line(img, angle_step=1, lines_are_white=True, value_threshold=5):
     # Hough accumulator array of theta vs rho
     accumulator = np.zeros((2 * diag_len, num_thetas))
     are_edges = img > value_threshold if lines_are_white else img < value_threshold
-    #are_edges = cv2.Canny(img,50,150,apertureSize = 3)
+    # are_edges = cv2.Canny(img,50,150,apertureSize = 3)
     y_idxs, x_idxs = np.nonzero(are_edges)  # (row, col) indexes to edges
     # Vote in the hough accumulator
-    xcosthetas = np.dot(x_idxs.reshape((-1,1)), cos_theta.reshape((1,-1)))
-    ysinthetas = np.dot(y_idxs.reshape((-1,1)), sin_theta.reshape((1,-1)))
+    xcosthetas = np.dot(x_idxs.reshape((-1, 1)), cos_theta.reshape((1, -1)))
+    ysinthetas = np.dot(y_idxs.reshape((-1, 1)), sin_theta.reshape((1, -1)))
     rhosmat = np.round(xcosthetas + ysinthetas) + diag_len
     rhosmat = rhosmat.astype(np.int16)
     for i in range(num_thetas):
-        rhos,counts = np.unique(rhosmat[:,i], return_counts=True)
-        accumulator[rhos,i] = counts
+        rhos, counts = np.unique(rhosmat[:, i], return_counts=True)
+        accumulator[rhos, i] = counts
     return accumulator, thetas, rhos
+
 
 def show_hough_line(img, accumulator, thetas, rhos, save_path=None):
     import matplotlib.pyplot as plt
@@ -88,28 +96,30 @@ def show_hough_line(img, accumulator, thetas, rhos, save_path=None):
     fig, ax = plt.subplots(1, 2, figsize=(10, 10))
 
     ax[0].imshow(img, cmap=plt.cm.gray)
-    ax[0].set_title('Input image')
-    ax[0].axis('image')
+    ax[0].set_title("Input image")
+    ax[0].axis("image")
 
     ax[1].imshow(
-        accumulator, cmap='jet',
-        extent=[np.rad2deg(thetas[-1]), np.rad2deg(thetas[0]), rhos[-1], rhos[0]])
-    ax[1].set_aspect('equal', adjustable='box')
-    ax[1].set_title('Hough transform')
-    ax[1].set_xlabel('Angles (degrees)')
-    ax[1].set_ylabel('Distance (pixels)')
-    ax[1].axis('image')
+        accumulator,
+        cmap="jet",
+        extent=[np.rad2deg(thetas[-1]), np.rad2deg(thetas[0]), rhos[-1], rhos[0]],
+    )
+    ax[1].set_aspect("equal", adjustable="box")
+    ax[1].set_title("Hough transform")
+    ax[1].set_xlabel("Angles (degrees)")
+    ax[1].set_ylabel("Distance (pixels)")
+    ax[1].axis("image")
 
     # plt.axis('off')
     if save_path is not None:
-        plt.savefig(save_path, bbox_inches='tight')
+        plt.savefig(save_path, bbox_inches="tight")
     plt.show()
 
 
-if __name__ == '__main__':
-    imgpath = 'imgs/binary_crosses.png'
+if __name__ == "__main__":
+    imgpath = "imgs/binary_crosses.png"
     img = imageio.imread(imgpath)
     if img.ndim == 3:
         img = rgb2gray(img)
     accumulator, thetas, rhos = hough_line(img)
-    show_hough_line(img, accumulator, thetas, rhos, save_path='imgs/output.png')
+    show_hough_line(img, accumulator, thetas, rhos, save_path="imgs/output.png")
