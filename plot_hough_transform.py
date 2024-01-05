@@ -1,12 +1,15 @@
+import pathlib
+
 import imageio.v2 as imageio
 import matplotlib.pyplot as plt
 import numpy as np
-
 from hough_transform import hough_line, rgb2gray
+
+SCRIPT_ROOT = pathlib.Path(__file__).resolve().parent
 
 
 def plot_hough_transform():
-    image_path = "lines.png"
+    image_path = SCRIPT_ROOT / "lines.png"
     image = imageio.imread(image_path)
     if image.ndim == 3:
         image = rgb2gray(image)
@@ -32,10 +35,10 @@ def plot_hough_transform():
     ax.set_xticks([-90, -45, 0, 45, 90])
     ax.set_xlim([-90, 90])
 
-    ax.set_xlabel("Angle/°")
-    ax.set_ylabel("Directed distance from origin/px")
+    ax.set_xlabel(r"Angle $\varphi$ of distance vector/°")
+    ax.set_ylabel(r"Length $|\vec{p}|$ of distance vector/px")
 
-    plt.savefig("accumulator.pdf")
+    plt.savefig(SCRIPT_ROOT / "accumulator.pdf")
     plt.show()
 
 
