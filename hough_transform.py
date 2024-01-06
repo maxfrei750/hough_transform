@@ -69,7 +69,7 @@ def fast_hough_line(img, angle_step=1, lines_are_white=True, value_threshold=5):
     diag_len = int(np.ceil(np.sqrt(width * width + height * height)))  # max_dist
     rhos = np.linspace(-diag_len, diag_len, diag_len * 2)
 
-    # Cache some resuable values
+    # Cache some reusable values
     cos_theta = np.cos(thetas)
     sin_theta = np.sin(thetas)
     num_thetas = len(thetas)
