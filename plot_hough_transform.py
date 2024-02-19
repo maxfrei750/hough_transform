@@ -30,6 +30,8 @@ def plot_hough_transform():
         ],
     )
 
+    plt.colorbar(label="Votes")
+
     ax = plt.gca()
 
     ax.set_xticks([-90, -45, 0, 45, 90])
@@ -39,7 +41,8 @@ def plot_hough_transform():
     ax.set_ylabel(r"Length $|\vec{p}|$ of distance vector/px")
 
     plt.savefig(SCRIPT_ROOT / "accumulator.pdf")
-    plt.show()
+    # plt.show()
+    plt.close()
 
 
 if __name__ == "__main__":
