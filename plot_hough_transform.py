@@ -3,6 +3,7 @@ import pathlib
 import imageio.v2 as imageio
 import matplotlib.pyplot as plt
 import numpy as np
+import pdfCropMargins
 from hough_transform import hough_line, rgb2gray
 
 SCRIPT_ROOT = pathlib.Path(__file__).resolve().parent
@@ -40,7 +41,18 @@ def plot_hough_transform():
     ax.set_xlabel(r"Angle $\varphi$ of distance vector/°")
     ax.set_ylabel(r"Length $|\vec{p}|$ of distance vector/px")
 
-    plt.savefig(SCRIPT_ROOT / "accumulator.pdf")
+    output_path = SCRIPT_ROOT / "accumulator.pdf"
+    plt.savefig(output_path)
+
+    pdfCropMargins.crop(
+        [
+            "-p",
+            "10",
+            "--modifyOriginal",
+            str(output_path),
+        ]
+    )
+
     # plt.show()
     plt.close()
 
